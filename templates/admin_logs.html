@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Query Interaction Logs — Admin Portal{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 style="font-size: 2rem;">Student Interaction Logs</h1>
+    <p style="color: var(--text-secondary); font-size: 0.95rem;">
+      Full audit trail of student questions, similarity matching scores, status outcomes, and feedback.
+    </p>
+  </div>
+  <a href="{{ url_for('admin_debug') }}" class="btn btn-outline btn-sm">
+    🔬 Test with Match Debugger
+  </a>
+</div>
+
+<div class="admin-layout">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem;">
+      Admin Controls
+    </div>
+    <ul class="admin-nav">
+      <li><a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link"><span>📊 Overview</span></a></li>
+      <li><a href="{{ url_for('admin_faqs') }}" class="admin-nav-link"><span>📚 Manage FAQs</span></a></li>
+      <li><a href="{{ url_for('admin_add_faq') }}" class="admin-nav-link"><span>➕ Add New FAQ</span></a></li>
+      <li><a href="{{ url_for('admin_logs') }}" class="admin-nav-link active"><span>📝 Query Logs</span></a></li>
+      <li><a href="{{ url_for('admin_debug') }}" class="admin-nav-link"><span>🔬 AI Match Debugger</span></a></li>
+      <li><a href="{{ url_for('admin_password') }}" class="admin-nav-link"><span>🔑 Change Password</span></a></li>
+    </ul>
+  </aside>
+
+  <!-- Logs Table -->
+  <div class="admin-main">
+    <div class="table-card">
+      <div class="table-header">
+        <h3 style="font-size: 1.1rem;">Logged Interactions ({{ logs | length }})</h3>
+      </div>
+
+      {% if logs %}
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width: 50px;">ID</th>
+                <th>Student Query</th>
+                <th>Category</th>
+                <th>Matched Question</th>
+                <th>Cosine Score</th>
+                <th>Status</th>
+                <th>Feedback</th>
+                <th>Date / Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for log in logs %}
+                <tr>
+                  <td style="color: var(--text-muted); font-size: 0.85rem;">#{{ log.id }}</td>
+                  <td style="font-weight: 500; max-width: 200px;">{{ log.user_query }}</td>
+                  <td>
+                    {% if log.category_filter %}
+                      <span class="badge cat-tag-{{ log.category_filter }}">{{ log.category_filter }}</span>
+                    {% elif log.matched_category %}
+                      <span class="badge cat-tag-{{ log.matched_category }}">{{ log.matched_category }}</span>
+                    {% else %}
+                      <span style="color: var(--text-muted); font-size: 0.8rem;">Auto</span>
+                    {% endif %}
+                  </td>
+                  <td style="font-size: 0.85rem; color: var(--text-secondary); max-width: 220px;">
+                    {% if log.matched_question %}
+                      #{{ log.matched_faq_id }}: {{ log.matched_question }}
+                    {% else %}
+                      <span style="color: var(--text-muted); font-style: italic;">No match (Fallback)</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <span style="font-family: monospace; font-weight: 600; font-size: 0.9rem;">
+                      {{ "%.4f"|format(log.similarity_score) }}
+                    </span>
+                  </td>
+                  <td>
+                    {% if log.response_status == 'RESOLVED' %}
+                      <span class="badge badge-resolved">Resolved</span>
+                    {% elif log.response_status == 'FALLBACK' %}
+                      <span class="badge badge-fallback">Fallback</span>
+                    {% else %}
+                      <span class="badge">{{ log.response_status }}</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if log.feedback == 'HELPFUL' %}
+                      <span style="color: var(--success-solid); font-weight: 600; font-size: 0.85rem;">👍 Helpful</span>
+                    {% elif log.feedback == 'NOT_HELPFUL' %}
+                      <span style="color: var(--danger-solid); font-weight: 600; font-size: 0.85rem;">👎 Unhelpful</span>
+                    {% else %}
+                      <span style="color: var(--text-muted); font-size: 0.8rem;">—</span>
+                    {% endif %}
+                  </td>
+                  <td style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">
+                    {{ log.created_at }}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="padding: 3rem; text-align: center; color: var(--text-muted);">
+          No interaction logs recorded yet.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

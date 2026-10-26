@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block title %}AI Agent Match Diagnostics — Admin Portal{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 style="font-size: 2rem;">AI Agent Match Diagnostics</h1>
+    <p style="color: var(--text-secondary); font-size: 0.95rem;">
+      Deterministic Retrieval Engine: Inspect TF-IDF tokenization, candidate cosine similarity, configurable threshold decisions, and matched FAQs.
+    </p>
+  </div>
+  <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary btn-sm">
+    &larr; Back to Dashboard
+  </a>
+</div>
+
+<!-- Architecture & Non-LLM Transparency Banner -->
+<div style="background: var(--primary-50); border: 1px solid var(--primary-200); border-radius: var(--radius-md); padding: 0.9rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: flex-start; gap: 0.85rem;">
+  <div style="font-size: 1.3rem; line-height: 1;">ℹ️</div>
+  <div style="font-size: 0.83rem; color: var(--primary-900); line-height: 1.45;">
+    <strong>Retrieval-Based FAQ Agent Architecture:</strong>
+    This agent is a deterministic, retrieval-based question-answering system using <strong>scikit-learn TF-IDF vectorization and Cosine Similarity</strong>.
+    It does <strong>not</strong> use a generative Large Language Model (LLM). Responses are retrieved verbatim from verified SQLite database records, preventing false answers or hallucinations while operating completely offline.
+  </div>
+</div>
+
+<div class="admin-layout">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem;">
+      Admin Controls
+    </div>
+    <ul class="admin-nav">
+      <li><a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link"><span>📊 Overview</span></a></li>
+      <li><a href="{{ url_for('admin_faqs') }}" class="admin-nav-link"><span>📚 Manage FAQs</span></a></li>
+      <li><a href="{{ url_for('admin_add_faq') }}" class="admin-nav-link"><span>➕ Add New FAQ</span></a></li>
+      <li><a href="{{ url_for('admin_logs') }}" class="admin-nav-link"><span>📝 Query Logs</span></a></li>
+      <li><a href="{{ url_for('admin_debug') }}" class="admin-nav-link active"><span>🔬 AI Diagnostics</span></a></li>
+      <li><a href="{{ url_for('admin_password') }}" class="admin-nav-link"><span>🔑 Change Password</span></a></li>
+    </ul>
+
+    <div style="margin-top: 2rem; padding: 1rem; background: var(--bg-subtle); border-radius: var(--radius-md); font-size: 0.8rem;">
+      <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.35rem;">
+        ⚙️ Confidence Threshold
+      </div>
+      <div style="color: var(--text-secondary); line-height: 1.4;">
+        Active: <strong>{{ threshold }}</strong><br>
+        Scores &ge; {{ threshold }} return verified answers. Scores &lt; {{ threshold }} trigger department fallback.
+      </div>
+    </div>
+  </aside>
+
+  <!-- Debugger Main -->
+  <div class="admin-main">
+    
+    <!-- Test Form with Configurable Threshold -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+      <h3 style="font-size: 1.1rem; margin-bottom: 0.75rem;">Simulate Student Query &amp; Test Sensitivity</h3>
+      <form method="GET" action="{{ url_for('admin_debug') }}" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <div style="flex: 2; min-width: 250px;">
+          <input 
+            type="text" 
+            name="q" 
+            class="form-control" 
+            placeholder="Type any test query (e.g. how much attendance do I need?)..." 
+            value="{{ query }}"
+            required
+          >
+        </div>
+        <div style="flex: 1; min-width: 150px;">
+          <select name="category" class="form-select">
+            <option value="">Any Category (Auto)</option>
+            {% for cat in categories %}
+              <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div style="min-width: 110px;">
+          <input 
+            type="number" 
+            name="threshold" 
+            class="form-control" 
+            step="0.05" 
+            min="0.05" 
+            max="0.95" 
+            value="{{ threshold }}" 
+            placeholder="Threshold"
+            title="Configurable Confidence Threshold (e.g. 0.25)"
+          >
+        </div>
+        <button type="submit" class="btn btn-primary">
+          Run Diagnostics
+        </button>
+      </form>
+    </div>
+
+    {% if report %}
+      {% if report.error %}
+        <div class="alert alert-danger">{{ report.error }}</div>
+      {% else %}
+        
+        <!-- Decision Verdict Banner -->
+        <div style="background: {% if report.decision == 'RESOLVED' %}var(--success-bg){% else %}var(--warning-bg){% endif %}; border: 1px solid {% if report.decision == 'RESOLVED' %}var(--success-border){% else %}var(--warning-border){% endif %}; border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: {% if report.decision == 'RESOLVED' %}var(--success-text){% else %}var(--warning-text){% endif %}; margin-bottom: 0.25rem;">
+              Decision: {{ report.decision }}
+            </div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);">
+              {% if report.decision == 'RESOLVED' and report.top_match %}
+                Matched FAQ #{{ report.top_match.faq_id }} with Confidence {{ "%.4f"|format(report.top_match.similarity_score) }} (&ge; {{ threshold }})
+              {% elif report.decision == 'EMPTY_QUERY' %}
+                Input was empty or contained no text characters &rarr; Rejection
+              {% else %}
+                Best candidate score ({{ "%.4f"|format(report.top_match.similarity_score) if report.top_match else '0.0000' }}) fell below threshold ({{ threshold }}) &rarr; Safe Fallback
+              {% endif %}
+            </div>
+          </div>
+          <div>
+            <span class="badge {% if report.decision == 'RESOLVED' %}badge-resolved{% else %}badge-fallback{% endif %}" style="font-size: 0.95rem; padding: 0.45rem 0.9rem;">
+              Score: {{ "%.2f"|format((report.top_match.similarity_score * 100) if report.top_match else 0) }}%
+            </span>
+          </div>
+        </div>
+
+        <!-- Matched FAQ Detailed Card (Prompt Requirement) -->
+        {% if report.decision == 'RESOLVED' and report.top_match %}
+          <div style="background: var(--bg-surface); border: 2px solid var(--primary-300); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="badge cat-tag-{{ report.top_match.category }}">{{ report.top_match.category }}</span>
+                <span style="font-weight: 700; color: var(--text-primary);">Matched FAQ #{{ report.top_match.faq_id }}</span>
+                {% if report.top_match.is_demo %}
+                  <span class="badge badge-demo">Demo</span>
+                {% endif %}
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Cosine Confidence:</span>
+                <span class="badge badge-resolved" style="font-size: 0.95rem; font-weight: 700; padding: 0.35rem 0.75rem;">
+                  {{ "%.4f"|format(report.top_match.similarity_score) }} ({{ report.top_match.confidence_percent }}%)
+                </span>
+              </div>
+            </div>
+
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.6rem; color: var(--text-primary); font-weight: 700;">
+              {{ report.top_match.question }}
+            </h3>
+
+            <div style="background: var(--bg-subtle); border-radius: var(--radius-md); padding: 1rem; font-size: 0.9rem; line-height: 1.5; color: var(--text-secondary); margin-bottom: 0.75rem;">
+              {{ report.top_match.answer }}
+            </div>
+
+            {% if report.top_match.keywords %}
+              <div style="font-size: 0.78rem; color: var(--text-muted);">
+                <strong>Indexed Keywords:</strong> <code>{{ report.top_match.keywords }}</code>
+              </div>
+            {% endif %}
+          </div>
+        {% elif report.top_match %}
+          <!-- Rejected Candidate Card (Preventing Low Similarity Hallucinations) -->
+          <div style="background: var(--bg-surface); border: 1px dashed var(--warning-border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--warning-text); text-transform: uppercase; margin-bottom: 0.35rem;">
+              🛡️ Low-Similarity Protection Safeguard
+            </div>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+              Closest FAQ was <strong>#{{ report.top_match.faq_id }}</strong>: <em>"{{ report.top_match.question }}"</em> with a similarity score of 
+              <strong>{{ "%.4f"|format(report.top_match.similarity_score) }}</strong>. Because this score is below the configured threshold of <strong>{{ threshold }}</strong>,
+              the agent strictly withheld the answer to avoid misinformation, instead providing official department contacts.
+            </p>
+          </div>
+        {% endif %}
+
+        <!-- Pipeline Breakdown Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+          
+          <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem;">
+              Stage 1 &amp; 2: Preprocessing
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+              Raw Input: <code>"{{ report.raw_query }}"</code>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary);">
+              Normalized Tokens: <code>"{{ report.normalized_query }}"</code>
+            </div>
+          </div>
+
+          <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem;">
+              Stage 3: Intent &amp; Category
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+              Detected Category: 
+              {% if report.detected_category %}
+                <span class="badge cat-tag-{{ report.detected_category }}">{{ report.detected_category }}</span>
+              {% else %}
+                <span style="color: var(--text-muted);">None (General / Ambiguous)</span>
+              {% endif %}
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary);">
+              Filter Constrained: 
+              {% if report.category_filter %}
+                <strong>{{ report.category_filter }}</strong>
+              {% else %}
+                <em>No filter (Scored across all FAQs)</em>
+              {% endif %}
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Candidate Ranking Table -->
+        <div class="table-card">
+          <div class="table-header">
+            <h3 style="font-size: 1.1rem;">Top Candidate FAQs Ranked by Cosine Similarity</h3>
+          </div>
+
+          <div class="data-table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">Rank</th>
+                  <th style="width: 60px;">FAQ ID</th>
+                  <th style="width: 110px;">Category</th>
+                  <th>Candidate Question</th>
+                  <th style="width: 150px;">Similarity Score</th>
+                  <th style="width: 110px;">Outcome</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for cand in report.all_ranked_candidates %}
+                  <tr {% if loop.first and cand.is_above_threshold %}style="background: var(--primary-50);"{% endif %}>
+                    <td style="font-weight: 700;">#{{ loop.index }}</td>
+                    <td style="color: var(--text-muted);">{{ cand.faq_id }}</td>
+                    <td>
+                      <span class="badge cat-tag-{{ cand.category }}">{{ cand.category }}</span>
+                    </td>
+                    <td style="font-weight: 500;">
+                      {{ cand.question }}
+                    </td>
+                    <td>
+                      <div class="meter-container">
+                        <span style="font-family: monospace; font-weight: 700;">{{ "%.4f"|format(cand.similarity_score) }}</span>
+                        <div class="meter-bar">
+                          <div class="meter-fill {% if cand.similarity_score >= threshold %}meter-high{% else %}meter-low{% endif %}"
+                               style="width: {{ (cand.similarity_score * 100)|int }}%;">
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      {% if cand.similarity_score >= threshold %}
+                        <span class="badge badge-resolved">&ge; Threshold</span>
+                      {% else %}
+                        <span class="badge badge-fallback">&lt; Threshold</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      {% endif %}
+    {% else %}
+      <div style="padding: 3.5rem; text-align: center; background: var(--bg-surface); border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg); color: var(--text-muted);">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔬</div>
+        <h3>Simulate and Debug Question Matching</h3>
+        <p style="max-width: 500px; margin: 0.5rem auto 0 auto;">
+          Enter any sample student query above to see the step-by-step TF-IDF vectorization, token extraction, category detection, and similarity score distribution.
+        </p>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

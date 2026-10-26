@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}500 - Server Error — Smart FAQ Assistant{% endblock %}
+
+{% block content %}
+<div style="text-align: center; padding: 5rem 1.5rem;">
+  <div style="font-size: 5rem; font-family: 'Outfit', sans-serif; font-weight: 800; color: var(--danger-solid); line-height: 1;">
+    500
+  </div>
+  <h1 style="font-size: 2rem; margin: 1rem 0 0.5rem 0;">Internal Server Error</h1>
+  <p style="color: var(--text-secondary); max-width: 480px; margin: 0 auto 2rem auto;">
+    An unexpected error occurred while processing your request. Please try again in a few moments.
+  </p>
+  <div style="display: flex; gap: 1rem; justify-content: center;">
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Go to Home</a>
+    <a href="{{ url_for('chat') }}" class="btn btn-primary">Open Chatbot</a>
+  </div>
+</div>
+{% endblock %}

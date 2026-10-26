@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Student Chatbot — Smart College Helpdesk{% endblock %}
+
+{% block content %}
+<div class="chat-layout">
+  
+  <!-- Backdrop for Mobile Sidebar Drawer -->
+  <div id="chat-sidebar-backdrop" class="chat-sidebar-backdrop"></div>
+
+  <!-- Left Filter & Suggestions Sidebar -->
+  <aside id="chat-sidebar" class="chat-sidebar">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.25rem;">
+      <div class="sidebar-title" style="margin-bottom: 0;">Filter Category</div>
+      <button id="chat-sidebar-close" class="btn-icon" style="display: none; width: 30px; height: 30px;" aria-label="Close Sidebar">
+        &times;
+      </button>
+    </div>
+
+    <div class="category-filter-list">
+      <button type="button" class="category-pill {% if not initial_category or initial_category == 'all' %}active{% endif %}" data-category="">
+        <span>🌐 All Categories</span>
+        <span class="badge" style="background:var(--bg-subtle);">All</span>
+      </button>
+      {% for cat in valid_categories %}
+        <button type="button" class="category-pill {% if initial_category == cat %}active{% endif %}" data-category="{{ cat }}">
+          <span>
+            {% if cat == 'Admissions' %}🎓
+            {% elif cat == 'Academics' %}📖
+            {% elif cat == 'Examinations' %}📝
+            {% elif cat == 'Library' %}📚
+            {% elif cat == 'Fees' %}💳
+            {% elif cat == 'Facilities' %}🏢
+            {% endif %}
+            {{ cat }}
+          </span>
+          <span class="badge cat-tag-{{ cat }}" style="font-size: 0.7rem;">
+            {% set cat_obj = categories | selectattr('category', 'equalto', cat) | first %}
+            {{ cat_obj.count if cat_obj else 0 }}
+          </span>
+        </button>
+      {% endfor %}
+    </div>
+
+    <div>
+      <div class="sidebar-title">Suggested Quick Questions</div>
+      <div class="suggestion-chips" style="flex-direction: column;">
+        {% for s in sample_suggestions %}
+          <button type="button" class="chip" data-question="{{ s.question }}" style="text-align: left; justify-content: flex-start; width: 100%;">
+            💬 {{ s.question }}
+          </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Helpdesk Office Contacts Reference -->
+    <div style="margin-top: auto; padding: 0.85rem; background: var(--bg-subtle); border-radius: var(--radius-md); font-size: 0.78rem;">
+      <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 0.35rem;">
+        📍 Quick Campus Contacts:
+      </div>
+      <div style="color: var(--text-secondary); line-height: 1.5;">
+        Admissions: <span style="font-family: monospace;">Ext 101</span><br>
+        Exam Cell: <span style="font-family: monospace;">Ext 103</span><br>
+        Library: <span style="font-family: monospace;">Ext 105</span><br>
+        Accounts: <span style="font-family: monospace;">Ext 104</span>
+      </div>
+    </div>
+
+    <div style="padding-top: 0.75rem; border-top: 1px solid var(--border-subtle);">
+      <button id="clear-chat-btn" class="btn btn-secondary btn-sm" style="width: 100%;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+        </svg>
+        Clear Conversation
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Chatbot Container -->
+  <section class="chat-main">
+    <div class="chat-header">
+      <div class="chat-header-title">
+        <!-- Mobile Sidebar Drawer Trigger Button -->
+        <button id="chat-sidebar-toggle" class="btn-icon chat-mobile-sidebar-toggle" aria-label="Open Filter Sidebar" title="Filters & Questions">
+          <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"></path>
+          </svg>
+        </button>
+
+        <div class="message-avatar avatar-bot" style="width: 34px; height: 34px; font-size: 0.85rem;">AI</div>
+        <div>
+          <h2>Campus Assistant</h2>
+          <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--text-muted);">
+            <span class="pulse-dot"></span>
+            <span>TF-IDF Matcher Online &bull; Local &amp; Private</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-header-actions">
+        <span id="active-category-badge" class="badge badge-primary">
+          {{ 'Filtered: ' + initial_category if initial_category else 'All Categories' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Scrollable Message Stream -->
+    <div id="chat-messages" class="chat-messages">
+      <!-- Chat bubbles injected via chat.js -->
+    </div>
+
+    <!-- Input Bar -->
+    <div class="chat-input-bar">
+      <form id="chat-form" class="chat-form">
+        <div class="chat-input-container">
+          <input 
+            type="text" 
+            id="chat-input" 
+            class="form-control chat-input-field" 
+            placeholder="Type your question here (e.g., What is the minimum attendance required?)..." 
+            autocomplete="off"
+            required
+          >
+          <button type="button" id="chat-input-clear" class="chat-input-clear" aria-label="Clear Input">&times;</button>
+        </div>
+        <button type="submit" class="btn btn-primary" id="chat-send-btn">
+          <span id="chat-send-text">Send</span>
+          <span id="chat-send-icon">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+            </svg>
+          </span>
+        </button>
+      </form>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.INITIAL_CATEGORY = {{ initial_category | tojson }};
+  window.INITIAL_QUERY = {{ initial_query | tojson }};
+  window.INITIAL_SUGGESTIONS = {{ sample_suggestions | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

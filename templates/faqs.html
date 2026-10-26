@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Campus FAQs — College Knowledge Base{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+  <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--primary-50); color: var(--primary-700); padding: 0.35rem 0.9rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 600; margin-bottom: 0.75rem;">
+    <span>📚 Verified Knowledge Base</span>
+  </div>
+  <h1 style="font-size: 2.3rem; margin-bottom: 0.5rem;">College FAQ Knowledge Base</h1>
+  <p style="color: var(--text-secondary); max-width: 750px;">
+    Search and browse verified college regulations, academic guidelines, exam procedures, library policies, and fee structures.
+  </p>
+</div>
+
+<!-- Search & Filter Controls -->
+<div class="faq-search-box">
+  <form id="faq-search-form" method="GET" action="{{ url_for('faqs') }}" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+    <input type="hidden" name="category" value="{{ current_category }}">
+    <div style="flex: 1; min-width: 260px; position: relative;">
+      <input 
+        type="text" 
+        id="faq-search-input"
+        name="q" 
+        class="form-control" 
+        placeholder="Search FAQs instantly by keyword (e.g. attendance, hall ticket, fees, hostel)..." 
+        value="{{ current_search }}"
+        autocomplete="off"
+      >
+    </div>
+    <button type="submit" class="btn btn-primary">
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+      Search
+    </button>
+    {% if current_search or current_category %}
+      <a href="{{ url_for('faqs') }}" class="btn btn-secondary">Reset Filters</a>
+    {% endif %}
+  </form>
+
+  <!-- Category Filter Tabs -->
+  <div class="faq-filter-tabs">
+    <a href="{{ url_for('faqs', q=current_search) }}" class="faq-tab {% if not current_category or current_category == 'all' %}active{% endif %}">
+      🌐 All Categories
+    </a>
+    {% for cat in valid_categories %}
+      <a href="{{ url_for('faqs', category=cat, q=current_search) }}" class="faq-tab {% if current_category == cat %}active{% endif %}">
+        {% if cat == 'Admissions' %}🎓
+        {% elif cat == 'Academics' %}📖
+        {% elif cat == 'Examinations' %}📝
+        {% elif cat == 'Library' %}📚
+        {% elif cat == 'Fees' %}💳
+        {% elif cat == 'Facilities' %}🏢
+        {% endif %}
+        {{ cat }}
+      </a>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- FAQ Accordion List -->
+{% if faqs %}
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem;">
+    <span id="faq-count-label">Showing {{ faqs | length }} question(s)</span>
+    <span style="font-size: 0.8rem;">Click any card to expand details</span>
+  </div>
+
+  <div id="faq-list-container" class="faq-accordion-list">
+    {% for faq in faqs %}
+      <div class="faq-accordion-item" data-category="{{ faq.category }}" data-text="{{ (faq.question ~ ' ' ~ faq.answer ~ ' ' ~ faq.keywords)|lower }}">
+        <div class="faq-header">
+          <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <span class="badge cat-tag-{{ faq.category }}">{{ faq.category }}</span>
+            {% if faq.is_demo %}
+              <span class="badge badge-demo">Demo Data</span>
+            {% endif %}
+            <h3>{{ faq.question }}</h3>
+          </div>
+          <svg class="faq-arrow" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </div>
+
+        <div class="faq-body">
+          <div style="line-height: 1.6; margin-bottom: 1rem; color: var(--text-primary);">
+            {{ faq.answer }}
+          </div>
+
+          {% if faq.keywords %}
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+              <strong>Tags / Keywords:</strong> {{ faq.keywords }}
+            </div>
+          {% endif %}
+
+          <div style="display: flex; justify-content: flex-end; gap: 0.75rem; flex-wrap: wrap;">
+            <button type="button" class="btn btn-secondary btn-sm btn-copy-faq" data-answer="{{ faq.answer }}" title="Copy answer">
+              📋 Copy Answer
+            </button>
+            <a href="{{ url_for('chat', q=faq.question, category=faq.category) }}" class="btn btn-outline btn-sm">
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+              </svg>
+              Test with AI Assistant
+            </a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Dynamic Empty State when client-side search matches 0 -->
+  <div id="faq-dynamic-empty" style="display: none; text-align: center; padding: 4rem 1.5rem; background: var(--bg-surface); border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
+    <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+    <h3>No FAQs match your search</h3>
+    <p style="color: var(--text-secondary); max-width: 500px; margin: 0.5rem auto 1.5rem auto;">
+      We couldn't find an exact stored FAQ, but our AI Assistant can analyze your query with TF-IDF and connect you to the right department.
+    </p>
+    <a id="ask-ai-fallback-btn" href="{{ url_for('chat') }}" class="btn btn-primary">
+      Ask AI Assistant
+    </a>
+  </div>
+
+{% else %}
+  <!-- Server-side Empty State -->
+  <div style="text-align: center; padding: 4rem 1.5rem; background: var(--bg-surface); border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
+    <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+    <h3>No FAQs Found</h3>
+    <p style="color: var(--text-secondary); max-width: 500px; margin: 0.5rem auto 1.5rem auto;">
+      We could not find any FAQ matching your search criteria. Try using different keywords or ask our AI Assistant.
+    </p>
+    <div style="display: flex; gap: 0.75rem; justify-content: center;">
+      <a href="{{ url_for('faqs') }}" class="btn btn-secondary">Reset Filters</a>
+      <a href="{{ url_for('chat', q=current_search) }}" class="btn btn-primary">Ask Assistant</a>
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Real-time client-side instant filtering as the student types
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('faq-search-input');
+    const items = document.querySelectorAll('.faq-accordion-item');
+    const countLabel = document.getElementById('faq-count-label');
+    const dynamicEmpty = document.getElementById('faq-dynamic-empty');
+    const askAiFallbackBtn = document.getElementById('ask-ai-fallback-btn');
+
+    if (searchInput && items.length > 0) {
+      searchInput.addEventListener('input', () => {
+        const query = searchInput.value.toLowerCase().trim();
+        let visibleCount = 0;
+
+        items.forEach(item => {
+          const itemText = item.getAttribute('data-text') || '';
+          if (!query || itemText.includes(query)) {
+            item.style.display = 'block';
+            visibleCount++;
+          } else {
+            item.style.display = 'none';
+          }
+        });
+
+        if (countLabel) {
+          countLabel.textContent = `Showing ${visibleCount} question(s)`;
+        }
+
+        if (dynamicEmpty) {
+          if (visibleCount === 0) {
+            dynamicEmpty.style.display = 'block';
+            if (askAiFallbackBtn) {
+              askAiFallbackBtn.href = `/chat?q=${encodeURIComponent(searchInput.value.trim())}`;
+            }
+          } else {
+            dynamicEmpty.style.display = 'none';
+          }
+        }
+      });
+    }
+
+    // Copy FAQ Answer button handler
+    const copyFaqBtns = document.querySelectorAll('.btn-copy-faq');
+    copyFaqBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const text = btn.getAttribute('data-answer');
+        if (text) {
+          navigator.clipboard.writeText(text).then(() => {
+            const orig = btn.innerHTML;
+            btn.innerHTML = '✓ Copied!';
+            btn.style.color = 'var(--success-solid)';
+            setTimeout(() => {
+              btn.innerHTML = orig;
+              btn.style.color = '';
+            }, 2000);
+          });
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

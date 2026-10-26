@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit FAQ #' ~ faq.id if faq else 'Add New FAQ' }} — Admin Portal{% endblock %}
+
+{% block content %}
+<div style="max-width: 760px; margin: 1rem auto;">
+  
+  <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+    <div>
+      <h1 style="font-size: 1.8rem;">{{ 'Edit FAQ #' ~ faq.id if faq else 'Add New FAQ' }}</h1>
+      <p style="color: var(--text-secondary); font-size: 0.9rem;">
+        {{ 'Update existing verified information. The AI knowledge base will re-index automatically.' if faq else 'Add a new question and answer to the campus knowledge base.' }}
+      </p>
+    </div>
+    <a href="{{ url_for('admin_faqs') }}" class="btn btn-secondary btn-sm">
+      &larr; Back to FAQs
+    </a>
+  </div>
+
+  <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 2rem; box-shadow: var(--shadow-md);">
+    <form method="POST">
+      
+      <!-- Category Selection -->
+      <div style="margin-bottom: 1.25rem;">
+        <label for="category" style="display: block; font-size: 0.88rem; font-weight: 600; margin-bottom: 0.4rem;">
+          Category <span style="color: var(--danger-solid);">*</span>
+        </label>
+        <select id="category" name="category" class="form-select" required>
+          <option value="">Select Category...</option>
+          {% for cat in categories %}
+            {% set selected_cat = form_data.category if form_data and form_data.category else (faq.category if faq else '') %}
+            <option value="{{ cat }}" {% if selected_cat == cat %}selected{% endif %}>
+              {{ cat }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Question Field -->
+      <div style="margin-bottom: 1.25rem;">
+        <label for="question" style="display: block; font-size: 0.88rem; font-weight: 600; margin-bottom: 0.4rem;">
+          Student Question <span style="color: var(--danger-solid);">*</span>
+        </label>
+        <input 
+          type="text" 
+          id="question" 
+          name="question" 
+          class="form-control" 
+          placeholder="e.g., What is the minimum attendance required for semester examinations?"
+          value="{{ form_data.question if form_data and form_data.question is defined else (faq.question if faq else '') }}" 
+          required
+        >
+        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.35rem;">
+          Write the canonical question clearly. The AI agent matches variations using TF-IDF cosine similarity.
+        </div>
+      </div>
+
+      <!-- Answer Field -->
+      <div style="margin-bottom: 1.25rem;">
+        <label for="answer" style="display: block; font-size: 0.88rem; font-weight: 600; margin-bottom: 0.4rem;">
+          Verified College Answer <span style="color: var(--danger-solid);">*</span>
+        </label>
+        <textarea 
+          id="answer" 
+          name="answer" 
+          class="form-control" 
+          rows="5" 
+          placeholder="Provide the complete, official, and helpful answer for students..." 
+          required
+        >{{ form_data.answer if form_data and form_data.answer is defined else (faq.answer if faq else '') }}</textarea>
+      </div>
+
+      <!-- Keywords / Synonyms Field -->
+      <div style="margin-bottom: 1.25rem;">
+        <label for="keywords" style="display: block; font-size: 0.88rem; font-weight: 600; margin-bottom: 0.4rem;">
+          Index Keywords &amp; Student Synonyms (Optional)
+        </label>
+        <input 
+          type="text" 
+          id="keywords" 
+          name="keywords" 
+          class="form-control" 
+          placeholder="e.g., attendance shortage medical condonation 75 percent rule"
+          value="{{ form_data.keywords if form_data and form_data.keywords is defined else (faq.keywords if faq else '') }}"
+        >
+        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.35rem;">
+          Add space-separated synonyms or colloquial terms that students might use. These boost the TF-IDF vector weight!
+        </div>
+      </div>
+
+      <!-- Demo Data Toggle -->
+      <div style="margin-bottom: 1.75rem; display: flex; align-items: center; gap: 0.6rem;">
+        {% set is_checked = form_data.is_demo if form_data and form_data.is_demo is defined else (faq.is_demo if faq else 1) %}
+        <input 
+          type="checkbox" 
+          id="is_demo" 
+          name="is_demo" 
+          value="1" 
+          {% if is_checked %}checked{% endif %}
+          style="width: 18px; height: 18px; cursor: pointer;"
+        >
+        <label for="is_demo" style="font-size: 0.88rem; color: var(--text-secondary); cursor: pointer;">
+          Mark as Sample / Demonstration Data (uncheck for verified official college policies)
+        </label>
+      </div>
+
+      <!-- Actions -->
+      <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+        <a href="{{ url_for('admin_faqs') }}" class="btn btn-secondary">
+          Cancel
+        </a>
+        <button type="submit" class="btn btn-primary">
+          {{ 'Save Changes' if faq else 'Add FAQ to Knowledge Base' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

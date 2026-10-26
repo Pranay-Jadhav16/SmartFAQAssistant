@@ -1,0 +1,1181 @@
+{% extends "base.html" %}
+
+{% block title %}Smart FAQ Assistant — Unified College Helpdesk &amp; AI Agent{% endblock %}
+
+{% block content %}
+
+<!-- =========================================================================
+     SECTION 1: HOME DASHBOARD
+     ========================================================================= -->
+<section id="section-home" class="spa-section active">
+  
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div>
+      <div class="hero-tagline">
+        <span class="pulse-dot"></span>
+        <span>AI Agent-Based College Helpdesk &bull; AIAD Mini-Project</span>
+      </div>
+      <h1 class="hero-title">
+        Instant Answers for <span>Campus Life</span>
+      </h1>
+      <p class="hero-subtitle">
+        Powered by TF-IDF vectorization and cosine similarity. Ask questions in natural language about admissions, attendance rules, semester exams, library books, fees, and campus facilities.
+      </p>
+
+      <!-- Quick Ask Search Form in Hero -->
+      <div class="hero-search-container">
+        <form id="home-search-form" class="hero-search-form">
+          <input 
+            type="text" 
+            id="home-search-input"
+            class="hero-search-input" 
+            placeholder="Ask anything about your college (e.g. 75% attendance rule)..." 
+            autocomplete="off"
+            required
+          >
+          <button type="submit" class="hero-search-btn" id="home-search-btn">
+            <span>Ask AI</span>
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+            </svg>
+          </button>
+        </form>
+      </div>
+
+      <div class="hero-ctas">
+        <button type="button" class="btn btn-primary" onclick="window.navigateToSection('chat')">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+          </svg>
+          Launch AI Assistant
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="window.navigateToSection('faqs')">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+          </svg>
+          Browse FAQ Directory
+        </button>
+      </div>
+    </div>
+
+    <!-- Hero Feature Card -->
+    <div class="hero-card">
+      <div class="agent-status-badge">
+        <span class="pulse-dot"></span>
+        <span>Agent Status: Online &bull; TF-IDF Vector Space Active</span>
+      </div>
+      <h3 style="font-size: 1.25rem; margin-bottom: 0.75rem;">AI Agent Evaluation Pipeline</h3>
+      <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+        The agent performs multi-stage deterministic question matching without relying on paid APIs or hallucinating answers:
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.85rem;">
+        <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+          <span style="background: var(--primary-100); color: var(--primary-800); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">1</span>
+          <div><strong>Input Sanitization:</strong> Normalizes text, cleans contractions, and validates question structure.</div>
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+          <span style="background: var(--primary-100); color: var(--primary-800); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">2</span>
+          <div><strong>Intent Classification:</strong> Identifies relevant campus category domain or user-applied filter.</div>
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+          <span style="background: var(--primary-100); color: var(--primary-800); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">3</span>
+          <div><strong>TF-IDF &amp; Cosine Ranking:</strong> Computes semantic relevance against SQLite FAQ corpus.</div>
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+          <span style="background: var(--primary-100); color: var(--primary-800); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">4</span>
+          <div><strong>Threshold Decision:</strong> Delivers answer if score &ge; threshold (0.25), otherwise routes to department contact fallback.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Helpdesk Stats Overview (Real Backend Data) -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📚</div>
+      <div>
+        <div class="stat-val" id="home-total-faqs">{{ total_faqs }}</div>
+        <div class="stat-label">Verified FAQ Entries</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">💬</div>
+      <div>
+        <div class="stat-val" id="home-total-queries">{{ total_queries }}</div>
+        <div class="stat-label">Student Queries Handled</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">🎯</div>
+      <div>
+        <div class="stat-val">{{ valid_categories | length }}</div>
+        <div class="stat-label">Campus Categories</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">⚡</div>
+      <div>
+        <div class="stat-val">&lt; 30ms</div>
+        <div class="stat-label">Vector Matching Speed</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Campus Department Office Directory Status Row -->
+  <div class="office-status-grid">
+    <div class="office-card">
+      <div class="office-card-header">
+        <span class="office-card-title">Admissions Cell</span>
+        <span class="office-card-status"><span class="pulse-dot"></span> Open</span>
+      </div>
+      <div class="office-card-hours">10:00 AM – 4:00 PM &bull; Rm 102</div>
+    </div>
+
+    <div class="office-card">
+      <div class="office-card-header">
+        <span class="office-card-title">Academic Section</span>
+        <span class="office-card-status"><span class="pulse-dot"></span> Open</span>
+      </div>
+      <div class="office-card-hours">9:00 AM – 5:00 PM &bull; Main Block</div>
+    </div>
+
+    <div class="office-card">
+      <div class="office-card-header">
+        <span class="office-card-title">Examination Cell</span>
+        <span class="office-card-status"><span class="pulse-dot"></span> Open</span>
+      </div>
+      <div class="office-card-hours">9:30 AM – 5:00 PM &bull; Exam Bldg</div>
+    </div>
+
+    <div class="office-card">
+      <div class="office-card-header">
+        <span class="office-card-title">Central Library</span>
+        <span class="office-card-status"><span class="pulse-dot"></span> Open</span>
+      </div>
+      <div class="office-card-hours">8:00 AM – 8:00 PM &bull; Library 1F</div>
+    </div>
+
+    <div class="office-card">
+      <div class="office-card-header">
+        <span class="office-card-title">Accounts &amp; Fees</span>
+        <span class="office-card-status"><span class="pulse-dot"></span> Open</span>
+      </div>
+      <div class="office-card-hours">10:00 AM – 3:30 PM &bull; Admin Ctr</div>
+    </div>
+
+    <div class="office-card">
+      <div class="office-card-header">
+        <span class="office-card-title">Campus Care / Hostel</span>
+        <span class="office-card-status"><span class="pulse-dot"></span> Open</span>
+      </div>
+      <div class="office-card-hours">9:00 AM – 6:00 PM &bull; Warden Rm</div>
+    </div>
+  </div>
+
+  <!-- Recent Questions from Current Session (Dynamic JS) -->
+  <div id="home-recent-section" class="home-recent-wrapper">
+    <div class="section-header" style="margin-bottom: 0.75rem;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h2 class="section-title" style="font-size: 1.25rem;">Recent Questions in This Session</h2>
+        <button type="button" id="clear-session-history-btn" class="btn btn-secondary btn-sm" style="display: none;">
+          Clear History
+        </button>
+      </div>
+      <p class="section-desc">
+        Questions asked during your current browsing session are kept in local memory for fast re-access.
+      </p>
+    </div>
+    <div id="home-recent-list" class="home-recent-list">
+      <!-- Populated via main.js from sessionStorage -->
+      <div class="recent-empty-prompt">
+        <span>💡 No questions asked yet in this session. Try searching above or pick a suggested question!</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trending Student Questions (Click to Ask AI) -->
+  <div class="section-header">
+    <h2 class="section-title">Trending Student Questions</h2>
+    <p class="section-desc">
+      Click any question below to immediately open the AI Assistant and submit it in natural language.
+    </p>
+  </div>
+
+  <div class="trending-questions-grid">
+    <button type="button" class="trending-q-card" data-ask-question="What is the minimum attendance requirement to appear for semester exams?">
+      <div>
+        <span class="badge cat-tag-Academics" style="margin-bottom: 0.35rem;">Academics</span>
+        <div style="font-weight: 600; font-size: 0.95rem;">What is the 75% attendance rule?</div>
+      </div>
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+    </button>
+
+    <button type="button" class="trending-q-card" data-ask-question="What are the accepted payment modes for college semester tuition fees?">
+      <div>
+        <span class="badge cat-tag-Fees" style="margin-bottom: 0.35rem;">Fees</span>
+        <div style="font-weight: 600; font-size: 0.95rem;">How can I pay semester fees online?</div>
+      </div>
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+    </button>
+
+    <button type="button" class="trending-q-card" data-ask-question="How and when can I download my examination hall ticket / admit card?">
+      <div>
+        <span class="badge cat-tag-Examinations" style="margin-bottom: 0.35rem;">Examinations</span>
+        <div style="font-weight: 600; font-size: 0.95rem;">How to download exam hall ticket?</div>
+      </div>
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+    </button>
+
+    <button type="button" class="trending-q-card" data-ask-question="What are the central library working hours and timings during exams?">
+      <div>
+        <span class="badge cat-tag-Library" style="margin-bottom: 0.35rem;">Library</span>
+        <div style="font-weight: 600; font-size: 0.95rem;">Central Library hours during exams?</div>
+      </div>
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+    </button>
+
+    <button type="button" class="trending-q-card" data-ask-question="What is the procedure for hostel room accommodation and allocation?">
+      <div>
+        <span class="badge cat-tag-Facilities" style="margin-bottom: 0.35rem;">Facilities</span>
+        <div style="font-weight: 600; font-size: 0.95rem;">Hostel room allocation process?</div>
+      </div>
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+    </button>
+
+    <button type="button" class="trending-q-card" data-ask-question="What are the eligibility criteria for B.Tech CSE admission?">
+      <div>
+        <span class="badge cat-tag-Admissions" style="margin-bottom: 0.35rem;">Admissions</span>
+        <div style="font-weight: 600; font-size: 0.95rem;">B.Tech CSE admission eligibility criteria?</div>
+      </div>
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+    </button>
+  </div>
+
+  <!-- Quick Access Category Cards -->
+  <div class="section-header">
+    <h2 class="section-title">Explore by Campus Category</h2>
+    <p class="section-desc">
+      Choose a category to browse stored guidelines or launch the AI Chatbot scoped directly to that department.
+    </p>
+  </div>
+
+  <div class="categories-grid">
+    {% for cat in valid_categories %}
+      <div class="category-card">
+        <div class="category-card-top">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 1.4rem;">
+              {% if cat == 'Admissions' %}🎓
+              {% elif cat == 'Academics' %}📖
+              {% elif cat == 'Examinations' %}📝
+              {% elif cat == 'Library' %}📚
+              {% elif cat == 'Fees' %}💳
+              {% elif cat == 'Facilities' %}🏢
+              {% endif %}
+            </span>
+            <span class="badge cat-tag-{{ cat }}">{{ cat }}</span>
+          </div>
+          <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+            {% set cat_obj = categories | selectattr('category', 'equalto', cat) | first %}
+            {{ cat_obj.count if cat_obj else 0 }} FAQs
+          </span>
+        </div>
+
+        <div>
+          <h3 class="category-card-title">{{ cat }}</h3>
+          <p class="category-card-desc">
+            {% if cat == 'Admissions' %}
+              Eligibility criteria, entrance cutoffs, required verification documents, and lateral entry.
+            {% elif cat == 'Academics' %}
+              Attendance regulations, credit system, CGPA calculation, and elective registration.
+            {% elif cat == 'Examinations' %}
+              Exam timetables, revaluation requests, backlog exams, and hall ticket downloads.
+            {% elif cat == 'Library' %}
+              Reading room hours, book borrowing limits, overdue fine structure, and digital resources.
+            {% elif cat == 'Fees' %}
+              Semester tuition payment methods, installment requests, and scholarship schemes.
+            {% elif cat == 'Facilities' %}
+              Hostel accommodation, sports complex, gym access, and college bus routes.
+            {% endif %}
+          </p>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; margin-top: auto;">
+          <button type="button" class="btn btn-primary btn-sm btn-category-chat" data-category="{{ cat }}" style="flex: 1;">
+            Chat in {{ cat }}
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm btn-category-browse" data-category="{{ cat }}">
+            Browse
+          </button>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Academic Demo Notice Callout -->
+  <div style="background: var(--bg-surface); border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; text-align: center; margin-bottom: 1.5rem;">
+    <span class="badge badge-demo" style="margin-bottom: 0.5rem;">Important College Demo Notice</span>
+    <p style="font-size: 0.9rem; color: var(--text-secondary); max-width: 800px; margin: 0.5rem auto 0 auto;">
+      All sample college policies, fees, timings, and department emails provided are demonstration data for the B.Tech Computer Science AIAD practical exam. Authorized campus administrators can update or replace sample data at any time via the <strong>Admin Portal</strong>.
+    </p>
+  </div>
+</section>
+
+
+<!-- =========================================================================
+     SECTION 2: AI CHATBOT (INTEGRATED)
+     ========================================================================= -->
+<section id="section-chat" class="spa-section">
+  
+  <div class="chat-layout">
+    
+    <!-- Mobile Sidebar Drawer Backdrop -->
+    <div id="chat-sidebar-backdrop" class="chat-sidebar-backdrop"></div>
+
+    <!-- Left Filter & Suggestions Sidebar -->
+    <aside id="chat-sidebar" class="chat-sidebar">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.25rem;">
+        <div class="sidebar-title" style="margin-bottom: 0;">Filter Category</div>
+        <button id="chat-sidebar-close" class="btn-icon" style="display: none; width: 30px; height: 30px;" aria-label="Close Filter Sidebar">
+          &times;
+        </button>
+      </div>
+
+      <div class="category-filter-list">
+        <button type="button" class="category-pill active" data-category="">
+          <span>🌐 All Categories</span>
+          <span class="badge" style="background:var(--bg-subtle);">All</span>
+        </button>
+        {% for cat in valid_categories %}
+          <button type="button" class="category-pill" data-category="{{ cat }}">
+            <span>
+              {% if cat == 'Admissions' %}🎓
+              {% elif cat == 'Academics' %}📖
+              {% elif cat == 'Examinations' %}📝
+              {% elif cat == 'Library' %}📚
+              {% elif cat == 'Fees' %}💳
+              {% elif cat == 'Facilities' %}🏢
+              {% endif %}
+              {{ cat }}
+            </span>
+            <span class="badge cat-tag-{{ cat }}" style="font-size: 0.7rem;">
+              {% set cat_obj = categories | selectattr('category', 'equalto', cat) | first %}
+              {{ cat_obj.count if cat_obj else 0 }}
+            </span>
+          </button>
+        {% endfor %}
+      </div>
+
+      <div>
+        <div class="sidebar-title">Suggested Quick Questions</div>
+        <div class="suggestion-chips" style="flex-direction: column;">
+          {% for s in sample_suggestions %}
+            <button type="button" class="chip" data-question="{{ s.question }}" style="text-align: left; justify-content: flex-start; width: 100%;">
+              💬 {{ s.question }}
+            </button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Helpdesk Office Contacts Reference -->
+      <div style="margin-top: auto; padding: 0.85rem; background: var(--bg-subtle); border-radius: var(--radius-md); font-size: 0.78rem;">
+        <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 0.35rem;">
+          📍 Quick Campus Contacts:
+        </div>
+        <div style="color: var(--text-secondary); line-height: 1.5;">
+          Admissions: <span style="font-family: monospace;">Ext 101</span><br>
+          Exam Cell: <span style="font-family: monospace;">Ext 103</span><br>
+          Library: <span style="font-family: monospace;">Ext 105</span><br>
+          Accounts: <span style="font-family: monospace;">Ext 104</span>
+        </div>
+      </div>
+
+      <div style="padding-top: 0.75rem; border-top: 1px solid var(--border-subtle);">
+        <button id="clear-chat-btn" class="btn btn-secondary btn-sm" style="width: 100%;">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+          Clear Conversation
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Chatbot Message Stream Area -->
+    <div class="chat-main">
+      <div class="chat-header">
+        <div class="chat-header-title">
+          <!-- Mobile Sidebar Toggle -->
+          <button id="chat-sidebar-toggle" class="btn-icon chat-mobile-sidebar-toggle" aria-label="Open Category Filters" title="Filters &amp; Questions">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"></path>
+            </svg>
+          </button>
+
+          <div class="message-avatar avatar-bot" style="width: 34px; height: 34px; font-size: 0.85rem;">AI</div>
+          <div>
+            <h2>Campus Assistant</h2>
+            <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--text-muted);">
+              <span class="pulse-dot"></span>
+              <span>TF-IDF Matcher Online &bull; Local &amp; Private</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-header-actions">
+          <span id="active-category-badge" class="badge badge-primary">
+            All Categories
+          </span>
+        </div>
+      </div>
+
+      <!-- Scrollable Message Stream -->
+      <div id="chat-messages" class="chat-messages">
+        <!-- Injected via chat.js and preserved across navigation -->
+      </div>
+
+      <!-- Input Bar -->
+      <div class="chat-input-bar">
+        <form id="chat-form" class="chat-form">
+          <div class="chat-input-container">
+            <input 
+              type="text" 
+              id="chat-input" 
+              class="form-control chat-input-field" 
+              placeholder="Type your question here (e.g., What is the minimum attendance required?)..." 
+              autocomplete="off"
+              required
+            >
+            <button type="button" id="chat-input-clear" class="chat-input-clear" aria-label="Clear Input">&times;</button>
+          </div>
+          <button type="submit" class="btn btn-primary" id="chat-send-btn">
+            <span id="chat-send-text">Send</span>
+            <span id="chat-send-icon">
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+              </svg>
+            </span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================================
+     SECTION 3: FAQ DIRECTORY (INTEGRATED)
+     ========================================================================= -->
+<section id="section-faqs" class="spa-section">
+  
+  <div style="margin-bottom: 2rem;">
+    <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--primary-50); color: var(--primary-700); padding: 0.35rem 0.9rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 600; margin-bottom: 0.75rem;">
+      <span>📚 Verified Knowledge Base</span>
+    </div>
+    <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem;">College FAQ Knowledge Base</h1>
+    <p style="color: var(--text-secondary); max-width: 750px;">
+      Search and browse verified college regulations, academic guidelines, exam procedures, library policies, and fee structures from our SQLite knowledge base.
+    </p>
+  </div>
+
+  <!-- Search & Category Filters -->
+  <div class="faq-search-box">
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 260px; position: relative;">
+        <input 
+          type="text" 
+          id="faq-search-input"
+          class="form-control" 
+          placeholder="Instant keyword search (e.g. attendance, hall ticket, fees, hostel)..." 
+          autocomplete="off"
+        >
+      </div>
+      <button type="button" id="faq-search-clear-btn" class="btn btn-secondary">
+        Reset
+      </button>
+    </div>
+
+    <!-- Category Filter Tabs (Client-side fast switching) -->
+    <div class="faq-filter-tabs" id="faq-category-tabs">
+      <button type="button" class="faq-tab active" data-category="">
+        🌐 All Categories
+      </button>
+      {% for cat in valid_categories %}
+        <button type="button" class="faq-tab" data-category="{{ cat }}">
+          {% if cat == 'Admissions' %}🎓
+          {% elif cat == 'Academics' %}📖
+          {% elif cat == 'Examinations' %}📝
+          {% elif cat == 'Library' %}📚
+          {% elif cat == 'Fees' %}💳
+          {% elif cat == 'Facilities' %}🏢
+          {% endif %}
+          {{ cat }}
+        </button>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- FAQ Counter & Legend -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem;">
+    <span id="faq-count-label">Showing {{ faqs | length }} question(s)</span>
+    <span style="font-size: 0.8rem;">Click any question card to expand answer</span>
+  </div>
+
+  <!-- Accordion List -->
+  <div id="faq-list-container" class="faq-accordion-list">
+    {% for faq in faqs %}
+      <div class="faq-accordion-item" data-category="{{ faq.category }}" data-text="{{ (faq.question ~ ' ' ~ faq.answer ~ ' ' ~ faq.keywords)|lower }}">
+        <div class="faq-header">
+          <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <span class="badge cat-tag-{{ faq.category }}">{{ faq.category }}</span>
+            {% if faq.is_demo %}
+              <span class="badge badge-demo">Demo Data</span>
+            {% endif %}
+            <h3>{{ faq.question }}</h3>
+          </div>
+          <svg class="faq-arrow" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </div>
+
+        <div class="faq-body">
+          <div style="line-height: 1.6; margin-bottom: 1rem; color: var(--text-primary);">
+            {{ faq.answer }}
+          </div>
+
+          {% if faq.keywords %}
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+              <strong>Tags / Keywords:</strong> {{ faq.keywords }}
+            </div>
+          {% endif %}
+
+          <div style="display: flex; justify-content: flex-end; gap: 0.75rem; flex-wrap: wrap;">
+            <button type="button" class="btn btn-secondary btn-sm btn-copy-faq" data-answer="{{ faq.answer }}" title="Copy answer text">
+              📋 Copy Answer
+            </button>
+            <button type="button" class="btn btn-outline btn-sm btn-test-ai" data-question="{{ faq.question }}" data-category="{{ faq.category }}">
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+              </svg>
+              Test with AI Assistant
+            </button>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Dynamic Empty State when filter or search has 0 matches -->
+  <div id="faq-dynamic-empty" style="display: none; text-align: center; padding: 4rem 1.5rem; background: var(--bg-surface); border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg); margin-top: 1rem;">
+    <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+    <h3>No FAQs match your search</h3>
+    <p style="color: var(--text-secondary); max-width: 500px; margin: 0.5rem auto 1.5rem auto;">
+      We couldn't find an exact stored FAQ, but our AI Assistant can analyze your query with TF-IDF vectorization and connect you to the right department.
+    </p>
+    <button type="button" id="ask-ai-fallback-btn" class="btn btn-primary">
+      Ask AI Assistant
+    </button>
+  </div>
+
+</section>
+
+
+<!-- =========================================================================
+     SECTION 4: CATEGORIES (DEDICATED SECTION)
+     ========================================================================= -->
+<section id="section-categories" class="spa-section">
+  
+  <div style="margin-bottom: 2rem;">
+    <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--primary-50); color: var(--primary-700); padding: 0.35rem 0.9rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 600; margin-bottom: 0.75rem;">
+      <span>🏷️ Campus Departments</span>
+    </div>
+    <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem;">Explore Campus Categories &amp; Departments</h1>
+    <p style="color: var(--text-secondary); max-width: 750px;">
+      Explore our six official college domains. Choose any department to view specialized knowledge or conduct a scoped natural-language dialogue.
+    </p>
+  </div>
+
+  <div class="categories-grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));">
+    
+    <!-- 1. Admissions -->
+    <div class="category-card">
+      <div class="category-card-top">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 1.6rem;">🎓</span>
+          <span class="badge cat-tag-Admissions">Admissions</span>
+        </div>
+        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+          {% set adm_obj = categories | selectattr('category', 'equalto', 'Admissions') | first %}
+          {{ adm_obj.count if adm_obj else 0 }} FAQs
+        </span>
+      </div>
+      <div>
+        <h3 class="category-card-title">Admissions &amp; Enrollment</h3>
+        <p class="category-card-desc">
+          Eligibility criteria, entrance cutoffs, required verification documents, lateral entry rules, and admission counseling procedures.
+        </p>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; line-height: 1.5;">
+          📍 <strong>Office:</strong> Admissions Cell, Rm 102<br>
+          ⏰ <strong>Hours:</strong> 10:00 AM – 4:00 PM<br>
+          📧 <strong>Contact:</strong> admissions@college.edu (Ext 101)
+        </div>
+      </div>
+      <div style="display: flex; gap: 0.5rem; margin-top: auto; padding-top: 1rem;">
+        <button type="button" class="btn btn-primary btn-sm btn-category-chat" data-category="Admissions" style="flex: 1;">
+          Chat in Admissions
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm btn-category-browse" data-category="Admissions">
+          Browse
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. Academics -->
+    <div class="category-card">
+      <div class="category-card-top">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 1.6rem;">📖</span>
+          <span class="badge cat-tag-Academics">Academics</span>
+        </div>
+        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+          {% set aca_obj = categories | selectattr('category', 'equalto', 'Academics') | first %}
+          {{ aca_obj.count if aca_obj else 0 }} FAQs
+        </span>
+      </div>
+      <div>
+        <h3 class="category-card-title">Academics &amp; Regulations</h3>
+        <p class="category-card-desc">
+          75% minimum attendance rule, medical leave concessions, semester credit systems, elective registrations, and CGPA evaluation.
+        </p>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; line-height: 1.5;">
+          📍 <strong>Office:</strong> Academic Section, Main Block 1F<br>
+          ⏰ <strong>Hours:</strong> 9:00 AM – 5:00 PM<br>
+          📧 <strong>Contact:</strong> academics@college.edu (Ext 102)
+        </div>
+      </div>
+      <div style="display: flex; gap: 0.5rem; margin-top: auto; padding-top: 1rem;">
+        <button type="button" class="btn btn-primary btn-sm btn-category-chat" data-category="Academics" style="flex: 1;">
+          Chat in Academics
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm btn-category-browse" data-category="Academics">
+          Browse
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. Examinations -->
+    <div class="category-card">
+      <div class="category-card-top">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 1.6rem;">📝</span>
+          <span class="badge cat-tag-Examinations">Examinations</span>
+        </div>
+        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+          {% set exm_obj = categories | selectattr('category', 'equalto', 'Examinations') | first %}
+          {{ exm_obj.count if exm_obj else 0 }} FAQs
+        </span>
+      </div>
+      <div>
+        <h3 class="category-card-title">Examinations &amp; Results</h3>
+        <p class="category-card-desc">
+          Midterm and end-semester timetables, hall ticket downloads, grade revaluation forms, backlog examination rules, and grade cards.
+        </p>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; line-height: 1.5;">
+          📍 <strong>Office:</strong> Examination Cell, Exam Complex<br>
+          ⏰ <strong>Hours:</strong> 9:30 AM – 5:00 PM<br>
+          📧 <strong>Contact:</strong> exams@college.edu (Ext 103)
+        </div>
+      </div>
+      <div style="display: flex; gap: 0.5rem; margin-top: auto; padding-top: 1rem;">
+        <button type="button" class="btn btn-primary btn-sm btn-category-chat" data-category="Examinations" style="flex: 1;">
+          Chat in Exams
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm btn-category-browse" data-category="Examinations">
+          Browse
+        </button>
+      </div>
+    </div>
+
+    <!-- 4. Library -->
+    <div class="category-card">
+      <div class="category-card-top">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 1.6rem;">📚</span>
+          <span class="badge cat-tag-Library">Library</span>
+        </div>
+        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+          {% set lib_obj = categories | selectattr('category', 'equalto', 'Library') | first %}
+          {{ lib_obj.count if lib_obj else 0 }} FAQs
+        </span>
+      </div>
+      <div>
+        <h3 class="category-card-title">Central Library</h3>
+        <p class="category-card-desc">
+          Reading room hours, book circulation limits, renewal policies, overdue fines, digital journal subscriptions, and IEEE access.
+        </p>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; line-height: 1.5;">
+          📍 <strong>Office:</strong> Central Library, 1st &amp; 2nd Floors<br>
+          ⏰ <strong>Hours:</strong> 8:00 AM – 8:00 PM (10 PM during exams)<br>
+          📧 <strong>Contact:</strong> library@college.edu (Ext 105)
+        </div>
+      </div>
+      <div style="display: flex; gap: 0.5rem; margin-top: auto; padding-top: 1rem;">
+        <button type="button" class="btn btn-primary btn-sm btn-category-chat" data-category="Library" style="flex: 1;">
+          Chat in Library
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm btn-category-browse" data-category="Library">
+          Browse
+        </button>
+      </div>
+    </div>
+
+    <!-- 5. Fees -->
+    <div class="category-card">
+      <div class="category-card-top">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 1.6rem;">💳</span>
+          <span class="badge cat-tag-Fees">Fees</span>
+        </div>
+        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+          {% set fee_obj = categories | selectattr('category', 'equalto', 'Fees') | first %}
+          {{ fee_obj.count if fee_obj else 0 }} FAQs
+        </span>
+      </div>
+      <div>
+        <h3 class="category-card-title">Fees &amp; Accounts</h3>
+        <p class="category-card-desc">
+          Semester tuition payment portals, installment approval procedures, government scholarship schemes, and refund guidelines.
+        </p>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; line-height: 1.5;">
+          📍 <strong>Office:</strong> Accounts Section, Admin Center Ground Floor<br>
+          ⏰ <strong>Hours:</strong> 10:00 AM – 3:30 PM<br>
+          📧 <strong>Contact:</strong> accounts@college.edu (Ext 104)
+        </div>
+      </div>
+      <div style="display: flex; gap: 0.5rem; margin-top: auto; padding-top: 1rem;">
+        <button type="button" class="btn btn-primary btn-sm btn-category-chat" data-category="Fees" style="flex: 1;">
+          Chat in Fees
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm btn-category-browse" data-category="Fees">
+          Browse
+        </button>
+      </div>
+    </div>
+
+    <!-- 6. Facilities -->
+    <div class="category-card">
+      <div class="category-card-top">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 1.6rem;">🏢</span>
+          <span class="badge cat-tag-Facilities">Facilities</span>
+        </div>
+        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+          {% set fac_obj = categories | selectattr('category', 'equalto', 'Facilities') | first %}
+          {{ fac_obj.count if fac_obj else 0 }} FAQs
+        </span>
+      </div>
+      <div>
+        <h3 class="category-card-title">Campus Care &amp; Facilities</h3>
+        <p class="category-card-desc">
+          Hostel room allocations, campus Wi-Fi credentials, sports complex timings, gymnasium rules, and campus transportation bus routes.
+        </p>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; line-height: 1.5;">
+          📍 <strong>Office:</strong> Campus Care / Hostel Warden Office<br>
+          ⏰ <strong>Hours:</strong> 9:00 AM – 6:00 PM<br>
+          📧 <strong>Contact:</strong> campuscare@college.edu (Ext 106)
+        </div>
+      </div>
+      <div style="display: flex; gap: 0.5rem; margin-top: auto; padding-top: 1rem;">
+        <button type="button" class="btn btn-primary btn-sm btn-category-chat" data-category="Facilities" style="flex: 1;">
+          Chat in Facilities
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm btn-category-browse" data-category="Facilities">
+          Browse
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================================
+     SECTION 5: ABOUT PROJECT (TRANSPARENCY & ARCHITECTURE)
+     ========================================================================= -->
+<section id="section-about" class="spa-section">
+  
+  <div style="margin-bottom: 2rem;">
+    <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--primary-50); color: var(--primary-700); padding: 0.35rem 0.9rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 600; margin-bottom: 0.75rem;">
+      <span>ℹ️ Project Architecture &amp; Methodology</span>
+    </div>
+    <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem;">About Smart FAQ Assistant</h1>
+    <p style="color: var(--text-secondary); max-width: 750px;">
+      An AI Agent-Based Question Answering System built for the B.Tech Computer Science AI Agent Development (AIAD) practical curriculum.
+    </p>
+  </div>
+
+  <!-- Retrieval-Based Architecture & Non-LLM Transparency Banner -->
+  <div style="background: var(--bg-surface); border: 2px solid var(--primary-300); border-radius: var(--radius-xl); padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-md);">
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+      <span style="font-size: 1.8rem;">🔬</span>
+      <div>
+        <h2 style="font-size: 1.35rem; margin-bottom: 0.2rem;">Deterministic Retrieval-Based Architecture</h2>
+        <span class="badge badge-resolved" style="font-size: 0.8rem;">100% Offline &bull; Zero Hallucinations &bull; scikit-learn TF-IDF</span>
+      </div>
+    </div>
+    <p style="color: var(--text-secondary); line-height: 1.65; margin-bottom: 1rem;">
+      Smart FAQ Assistant is an <strong>agentic question-answering system</strong> designed around deterministic information retrieval.
+      Instead of using a generative Large Language Model (LLM) that can hallucinate unverified policies or incur recurring API charges, this agent converts student questions into vector space representations using <strong>Term Frequency-Inverse Document Frequency (TF-IDF)</strong> and computes geometric semantic alignment using <strong>Cosine Similarity</strong>.
+    </p>
+    <div style="background: var(--bg-subtle); border-radius: var(--radius-md); padding: 1rem 1.25rem; font-family: monospace; font-size: 0.88rem; color: var(--primary-800); border-left: 4px solid var(--primary-600);">
+      Cosine Similarity Formula: CosSim(Q, D) = (Q &bull; D) / (||Q|| &times; ||D||)
+    </div>
+  </div>
+
+  <!-- 4-Stage Pipeline Cards -->
+  <h2 style="font-size: 1.4rem; margin-bottom: 1rem;">Agent Decision Pipeline</h2>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+    
+    <div class="stat-card" style="flex-direction: column; align-items: flex-start;">
+      <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 0.75rem;">
+        <span class="stat-icon" style="background: #eff6ff; color: #2563eb;">1</span>
+        <span class="badge">Input Processing</span>
+      </div>
+      <h3 style="font-size: 1.05rem; margin-bottom: 0.35rem;">Sanitization &amp; Contraction Expansion</h3>
+      <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+        Converts text to lowercase, handles apostrophes and contractions ("don't" &rarr; "do not"), strips excessive punctuation, and rejects empty strings or symbol-only queries.
+      </p>
+    </div>
+
+    <div class="stat-card" style="flex-direction: column; align-items: flex-start;">
+      <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 0.75rem;">
+        <span class="stat-icon" style="background: #f0fdf4; color: #16a34a;">2</span>
+        <span class="badge">Intent Extraction</span>
+      </div>
+      <h3 style="font-size: 1.05rem; margin-bottom: 0.35rem;">Category Intent Matching</h3>
+      <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+        Analyzes lexical cues to identify relevant campus departments (Admissions, Academics, Examinations, Library, Fees, Facilities) or applies explicit student filter constraints.
+      </p>
+    </div>
+
+    <div class="stat-card" style="flex-direction: column; align-items: flex-start;">
+      <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 0.75rem;">
+        <span class="stat-icon" style="background: #fdf4ff; color: #a21caf;">3</span>
+        <span class="badge">Vector Similarity</span>
+      </div>
+      <h3 style="font-size: 1.05rem; margin-bottom: 0.35rem;">TF-IDF Matrix &amp; Cosine Metric</h3>
+      <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+        Computes sparse vectors using sublinear TF scaling and smooth IDF weighting. Scores candidate FAQ vectors against the query vector in milliseconds.
+      </p>
+    </div>
+
+    <div class="stat-card" style="flex-direction: column; align-items: flex-start;">
+      <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 0.75rem;">
+        <span class="stat-icon" style="background: #fffbeb; color: #d97706;">4</span>
+        <span class="badge">Decision Gate</span>
+      </div>
+      <h3 style="font-size: 1.05rem; margin-bottom: 0.35rem;">Configurable Confidence Fallback</h3>
+      <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+        If highest candidate score &ge; threshold (0.25), delivers the verified SQLite answer. If below threshold, cleanly diverts to official department contacts.
+      </p>
+    </div>
+
+  </div>
+
+  <!-- System Specifications & Technology Stack -->
+  <div class="table-card">
+    <div class="table-header">
+      <h3 style="font-size: 1.1rem;">Engineering Stack &amp; Constraints</h3>
+    </div>
+    <div style="padding: 1.5rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+        <div>
+          <div style="font-size: 0.8rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Backend Framework</div>
+          <div style="font-weight: 600;">Python 3.10+ &bull; Flask WSGI Microframework</div>
+        </div>
+        <div>
+          <div style="font-size: 0.8rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Machine Learning Engine</div>
+          <div style="font-weight: 600;">scikit-learn (TfidfVectorizer &amp; cosine_similarity)</div>
+        </div>
+        <div>
+          <div style="font-size: 0.8rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Relational Database</div>
+          <div style="font-weight: 600;">SQLite3 (WAL Mode, Parameterized Queries)</div>
+        </div>
+        <div>
+          <div style="font-size: 0.8rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">User Interface</div>
+          <div style="font-weight: 600;">HTML5 Semantic, Vanilla CSS Variables, Vanilla ES6 JS</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+
+<!-- =========================================================================
+     SECTION 6: ADMIN AREA (INTEGRATED)
+     ========================================================================= -->
+<section id="section-admin" class="spa-section">
+  
+  {% if session.get('is_admin') %}
+    <!-- -------------------------------------------------------------------
+         AUTHENTICATED ADMIN DASHBOARD VIEW
+         ------------------------------------------------------------------- -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--primary-50); color: var(--primary-700); padding: 0.35rem 0.9rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">
+          <span>⚙️ Administrator Control Center</span>
+        </div>
+        <h1 style="font-size: 2.2rem; margin-bottom: 0.25rem;">Administrator Dashboard</h1>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">
+          Monitor student resolution rates, manage knowledge base entries, and inspect AI agent cosine decisions.
+        </p>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <a href="{{ url_for('admin_debug') }}" class="btn btn-outline btn-sm">
+          🔬 AI Match Diagnostics
+        </a>
+        <a href="{{ url_for('admin_add_faq') }}" class="btn btn-primary btn-sm">
+          + Add New FAQ
+        </a>
+        <a href="{{ url_for('admin_faqs') }}" class="btn btn-secondary btn-sm">
+          📚 Manage FAQs
+        </a>
+        <a href="{{ url_for('admin_password') }}" class="btn btn-outline btn-sm">
+          🔑 Password
+        </a>
+        <a href="{{ url_for('admin_logout') }}" class="btn btn-secondary btn-sm" style="color: var(--danger-solid);">
+          🚪 Sign Out
+        </a>
+      </div>
+    </div>
+
+    <!-- Top KPI Summary Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+      
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#eff6ff; color:#2563eb;">📚</div>
+        <div>
+          <div class="stat-val" id="admin-stat-total-faqs">{{ analytics.total_faqs }}</div>
+          <div class="stat-label">Total Verified FAQs</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#f0f9ff; color:#0284c7;">💬</div>
+        <div>
+          <div class="stat-val" id="admin-stat-questions-asked">{{ analytics.total_queries }}</div>
+          <div class="stat-label">Questions Asked</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#ecfdf5; color:#059669;">👍</div>
+        <div>
+          <div class="stat-val" id="admin-stat-helpful-feedback">{{ analytics.helpful_count }}</div>
+          <div class="stat-label">Helpful Feedback ({{ analytics.unhelpful_count }} unhelpful)</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#f5f3ff; color:#7c3aed;">🎯</div>
+        <div>
+          <div class="stat-val" id="admin-stat-resolution-rate">{{ analytics.resolution_rate }}%</div>
+          <div class="stat-label">Resolution Rate ({{ analytics.fallback_count }} fallbacks)</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Category Distribution Breakdown -->
+    <div class="table-card" style="margin-bottom: 1.5rem;">
+      <div class="table-header">
+        <h3 style="font-size: 1.1rem;">Category Activity Distribution</h3>
+      </div>
+      <div style="padding: 1.5rem;">
+        {% if analytics.category_breakdown %}
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            {% for item in analytics.category_breakdown %}
+              <div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 0.35rem;">
+                  <span style="font-weight: 600;">{{ item.category }}</span>
+                  <span style="color: var(--text-muted);">{{ item.count }} inquiries</span>
+                </div>
+                <div class="meter-bar" style="height: 8px;">
+                  {% set pct = (item.count / analytics.total_queries * 100) if analytics.total_queries > 0 else 0 %}
+                  <div class="meter-fill meter-high" style="width: {{ pct }}%; background: var(--primary-600);"></div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p style="color: var(--text-muted); font-size: 0.9rem;">
+            No student query activity recorded yet. Start interacting with the AI Chatbot to see category analytics!
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Recent Student Interactions Table -->
+    <div class="table-card">
+      <div class="table-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 1.1rem;">Recent Student Inquiries &amp; Matching Verdicts</h3>
+        <a href="{{ url_for('admin_logs') }}" class="btn btn-outline btn-sm">View Full Logs</a>
+      </div>
+
+      {% if recent_logs %}
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Student Query</th>
+                <th>Matched FAQ / Output</th>
+                <th>Score</th>
+                <th>Status</th>
+                <th>Feedback</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for log in recent_logs %}
+                <tr>
+                  <td>#{{ log.id }}</td>
+                  <td style="font-weight: 500; max-width: 250px;">{{ log.user_query }}</td>
+                  <td style="font-size: 0.85rem; color: var(--text-secondary); max-width: 260px;">
+                    {% if log.matched_question %}
+                      {{ log.matched_question }}
+                    {% else %}
+                      <span style="color: var(--text-muted);">None (Fallback triggered)</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="meter-container">
+                      <span style="font-family: monospace; font-size: 0.85rem;">{{ "%.2f"|format(log.similarity_score) }}</span>
+                      <div class="meter-bar" style="width: 50px;">
+                        <div class="meter-fill {% if log.similarity_score >= threshold %}meter-high{% elif log.similarity_score > 0.1 %}meter-med{% else %}meter-low{% endif %}"
+                             style="width: {{ (log.similarity_score * 100)|int }}%;">
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    {% if log.response_status == 'RESOLVED' %}
+                      <span class="badge badge-resolved">Resolved</span>
+                    {% elif log.response_status == 'FALLBACK' %}
+                      <span class="badge badge-fallback">Fallback</span>
+                    {% else %}
+                      <span class="badge">{{ log.response_status }}</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if log.feedback == 'HELPFUL' %}
+                      <span style="color: var(--success-solid); font-weight: 600; font-size: 0.85rem;">👍 Helpful</span>
+                    {% elif log.feedback == 'NOT_HELPFUL' %}
+                      <span style="color: var(--danger-solid); font-weight: 600; font-size: 0.85rem;">👎 Unhelpful</span>
+                    {% else %}
+                      <span style="color: var(--text-muted); font-size: 0.8rem;">—</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="padding: 2.5rem; text-align: center; color: var(--text-muted);">
+          No student interactions logged yet. Try asking questions on the AI Chatbot!
+        </div>
+      {% endif %}
+    </div>
+
+  {% else %}
+    <!-- -------------------------------------------------------------------
+         UNAUTHENTICATED VIEW: SECURE SIGN-IN FORM INSIDE UNIFIED LAYOUT
+         ------------------------------------------------------------------- -->
+    <div style="max-width: 440px; margin: 2rem auto;">
+      <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 2.5rem; box-shadow: var(--shadow-xl);">
+        
+        <div style="text-align: center; margin-bottom: 2rem;">
+          <div style="width: 56px; height: 56px; border-radius: var(--radius-full); background: var(--primary-50); color: var(--primary-700); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+            <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+          </div>
+          <h1 style="font-size: 1.6rem; margin-bottom: 0.35rem;">Admin Sign In</h1>
+          <p style="font-size: 0.88rem; color: var(--text-secondary);">
+            Sign in to manage FAQs, view student query analytics, and inspect AI Agent matching logs.
+          </p>
+        </div>
+
+        <form method="POST" action="{{ url_for('admin_login', next=url_for('index', _anchor='admin')) }}">
+          <div style="margin-bottom: 1.25rem;">
+            <label for="username" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem;">
+              Username
+            </label>
+            <input 
+              type="text" 
+              id="username" 
+              name="username" 
+              class="form-control" 
+              placeholder="e.g. admin" 
+              required 
+              autocomplete="username"
+            >
+          </div>
+
+          <div style="margin-bottom: 1.75rem;">
+            <label for="password" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem;">
+              Password
+            </label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="form-control" 
+              placeholder="••••••••" 
+              required
+              autocomplete="current-password"
+            >
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%;">
+            Sign In to Admin Portal
+          </button>
+        </form>
+
+        <!-- Academic Setup Instruction Note -->
+        <div style="margin-top: 2rem; padding: 1rem; background: var(--bg-subtle); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-secondary);">
+          <div style="font-weight: 600; margin-bottom: 0.25rem; color: var(--text-primary);">
+            🔑 Default Practical Exam Credentials:
+          </div>
+          <div>Username: <code style="color: var(--primary-700); font-weight:600;">admin</code></div>
+          <div>Password: <code style="color: var(--primary-700); font-weight:600;">admin123</code></div>
+          <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-muted);">
+            Passwords are encrypted and verified with salt using python's <code>scrypt</code> algorithm.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  {% endif %}
+
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.INITIAL_CATEGORY = "";
+  window.INITIAL_QUERY = "";
+  window.INITIAL_SUGGESTIONS = {{ sample_suggestions | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

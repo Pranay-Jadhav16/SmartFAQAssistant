@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard Overview — Smart FAQ Assistant{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 style="font-size: 2rem;">Administrator Dashboard</h1>
+    <p style="color: var(--text-secondary); font-size: 0.95rem;">
+      Monitor AI Agent performance, student query resolution rates, and manage FAQ content.
+    </p>
+  </div>
+  <div style="display: flex; gap: 0.75rem;">
+    <a href="{{ url_for('admin_debug') }}" class="btn btn-outline btn-sm">
+      🔬 AI Agent Debugger
+    </a>
+    <a href="{{ url_for('admin_add_faq') }}" class="btn btn-primary btn-sm">
+      + Add New FAQ
+    </a>
+  </div>
+</div>
+
+<div class="admin-layout">
+  <!-- Admin Sidebar Navigation -->
+  <aside class="admin-sidebar">
+    <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem;">
+      Admin Controls
+    </div>
+    <ul class="admin-nav">
+      <li>
+        <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link active">
+          <span>📊 Overview</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin_faqs') }}" class="admin-nav-link">
+          <span>📚 Manage FAQs</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin_add_faq') }}" class="admin-nav-link">
+          <span>➕ Add New FAQ</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin_logs') }}" class="admin-nav-link">
+          <span>📝 Query Logs</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin_debug') }}" class="admin-nav-link">
+          <span>🔬 AI Match Debugger</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin_password') }}" class="admin-nav-link">
+          <span>🔑 Change Password</span>
+        </a>
+      </li>
+    </ul>
+
+    <div style="margin-top: 2rem; padding: 1rem; background: var(--bg-subtle); border-radius: var(--radius-md); font-size: 0.8rem;">
+      <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.35rem;">
+        ⚙️ Agent Settings
+      </div>
+      <div style="color: var(--text-secondary);">
+        Confidence Threshold: <strong>{{ threshold }}</strong>
+      </div>
+      <div style="color: var(--text-secondary); margin-top: 0.25rem;">
+        Algorithm: <strong>TF-IDF + Cosine</strong>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Dashboard Content -->
+  <div class="admin-main">
+    
+    <!-- Top KPI Cards: Total FAQs, Questions Asked, Helpful Feedback, Resolution Rate -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem;">
+      
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#eff6ff; color:#2563eb;">📚</div>
+        <div>
+          <div class="stat-val" id="stat-total-faqs">{{ analytics.total_faqs }}</div>
+          <div class="stat-label">Total Verified FAQs</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#f0f9ff; color:#0284c7;">💬</div>
+        <div>
+          <div class="stat-val" id="stat-questions-asked">{{ analytics.total_queries }}</div>
+          <div class="stat-label">Questions Asked</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#ecfdf5; color:#059669;">👍</div>
+        <div>
+          <div class="stat-val" id="stat-helpful-feedback">{{ analytics.helpful_count }}</div>
+          <div class="stat-label">Helpful Feedback ({{ analytics.unhelpful_count }} unhelpful)</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#f5f3ff; color:#7c3aed;">🎯</div>
+        <div>
+          <div class="stat-val" id="stat-resolution-rate">{{ analytics.resolution_rate }}%</div>
+          <div class="stat-label">Resolution Rate ({{ analytics.fallback_count }} fallbacks)</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Category Distribution Breakdown -->
+    <div class="table-card">
+      <div class="table-header">
+        <h3 style="font-size: 1.1rem;">Category Activity Distribution</h3>
+      </div>
+      <div style="padding: 1.5rem;">
+        {% if analytics.category_breakdown %}
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            {% for item in analytics.category_breakdown %}
+              <div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 0.35rem;">
+                  <span style="font-weight: 600;">{{ item.category }}</span>
+                  <span style="color: var(--text-muted);">{{ item.count }} inquiries</span>
+                </div>
+                <div class="meter-bar" style="height: 8px;">
+                  {% set pct = (item.count / analytics.total_queries * 100) if analytics.total_queries > 0 else 0 %}
+                  <div class="meter-fill meter-high" style="width: {{ pct }}%; background: var(--primary-600);"></div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p style="color: var(--text-muted); font-size: 0.9rem;">
+            No query activity recorded yet. Start interacting with the Student Chatbot to see category analytics!
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Recent Interaction Logs Table -->
+    <div class="table-card">
+      <div class="table-header">
+        <h3 style="font-size: 1.1rem;">Recent Student Inquiries</h3>
+        <a href="{{ url_for('admin_logs') }}" class="btn btn-outline btn-sm">View All Logs</a>
+      </div>
+
+      {% if recent_logs %}
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Question Query</th>
+                <th>Matched FAQ / Response</th>
+                <th>Score</th>
+                <th>Status</th>
+                <th>Feedback</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for log in recent_logs %}
+                <tr>
+                  <td>#{{ log.id }}</td>
+                  <td style="font-weight: 500; max-width: 250px;">{{ log.user_query }}</td>
+                  <td style="font-size: 0.85rem; color: var(--text-secondary); max-width: 260px;">
+                    {% if log.matched_question %}
+                      {{ log.matched_question }}
+                    {% else %}
+                      <span style="color: var(--text-muted);">None (Fallback triggered)</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="meter-container">
+                      <span style="font-family: monospace; font-size: 0.85rem;">{{ "%.2f"|format(log.similarity_score) }}</span>
+                      <div class="meter-bar" style="width: 50px;">
+                        <div class="meter-fill {% if log.similarity_score >= threshold %}meter-high{% elif log.similarity_score > 0.1 %}meter-med{% else %}meter-low{% endif %}"
+                             style="width: {{ (log.similarity_score * 100)|int }}%;">
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    {% if log.response_status == 'RESOLVED' %}
+                      <span class="badge badge-resolved">Resolved</span>
+                    {% elif log.response_status == 'FALLBACK' %}
+                      <span class="badge badge-fallback">Fallback</span>
+                    {% else %}
+                      <span class="badge">{{ log.response_status }}</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if log.feedback == 'HELPFUL' %}
+                      <span style="color: var(--success-solid); font-weight: 600; font-size: 0.85rem;">👍 Helpful</span>
+                    {% elif log.feedback == 'NOT_HELPFUL' %}
+                      <span style="color: var(--danger-solid); font-weight: 600; font-size: 0.85rem;">👎 Unhelpful</span>
+                    {% else %}
+                      <span style="color: var(--text-muted); font-size: 0.8rem;">—</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="padding: 2.5rem; text-align: center; color: var(--text-muted);">
+          No student interactions logged yet. Try asking questions on the Chatbot page!
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}
